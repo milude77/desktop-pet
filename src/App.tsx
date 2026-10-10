@@ -8,7 +8,6 @@ import { useNativeMenu } from "./hooks/useNativeMenu";
 import { useSpineAnimation } from "./hooks/useSpineAnimation";
 import { SpineCanvas } from "./components/SpineCanvas";
 import { getMenuConfig } from "./components/MenuConfig";
-import { Bubble } from "./components/Bubble"
 import { loadPlugin } from "./toolVoid/loadPlugins"
 import "./App.css";
 
@@ -17,11 +16,21 @@ function App() {
   const { animations, playAnimation, setDragging } = useSpineAnimation();
   
 
+  // 监听主窗口移动事件，同步更新气泡窗口位置
+  // 覆盖所有移动来源：拖拽、自动走动、系统移动等
+  useEffect(() => {
+    const win = getCurrentWindow();
+    const unlisten = win.onMoved(() => {
+      invoke("update_bubble_position").catch(() => {});
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
   // 鼠标穿透状态
   const [isPassthrough, setIsPassthrough] = useState(false);
   const [plugins, setPlugins] = useState([])
-  const [bubbleText, setBubbleText] = useState("")
-  const [bubbleVisible, setBubbleVisible] = useState(false)
 
   // 监听 Rust 托盘的穿透状态变化
   useEffect(() => {
@@ -152,15 +161,22 @@ function App() {
   );
 
   const bubbleAPI = {
-    show(text: string) {
-      setBubbleText(text)
-      setBubbleVisible(true)
+    async show(text: string) {
+      try {
+        await invoke("show_bubble", { text, duration: 5000 })
+      } catch (e) {
+        console.error("显示气泡失败:", e)
+      }
     },
 
-    hide() {
-      setBubbleVisible(false)
+    async hide() {
+      try {
+        await invoke("hide_bubble")
+      } catch (e) {
+        console.error("隐藏气泡失败:", e)
+      }
     },
-}
+  }
 
   return (
     <main
@@ -168,11 +184,6 @@ function App() {
       onMouseDown={onMouseDown}
       onContextMenu={handleContextMenu}
     >
-      <Bubble
-        text={bubbleText}
-        visible={bubbleVisible}
-        onHide={() => setBubbleVisible(false)}
-      />
       {/* Spine 动画显示区域 - 自适应窗口大小 */}
       <SpineCanvas
         assetPath="/assets/changmen/changmen"
