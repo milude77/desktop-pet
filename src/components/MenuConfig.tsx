@@ -12,6 +12,19 @@ interface MenuItemConfig {
   separator?: boolean;
 }
 
+export interface DiscoveredPlugin {
+  path: string
+  manifest: {
+    id: string
+    name: string
+    version: string
+    author?: string
+    description?: string
+    main: string
+  }
+}
+
+
 /**
  * 获取右键菜单配置
  *
@@ -23,10 +36,11 @@ interface MenuItemConfig {
  */
 export function getMenuConfig(
   animations: string[],
-  plugins:string[],
+  plugins: DiscoveredPlugin[],
   playAnimation?: (name: string, loop: boolean) => void,
   isPassthrough?: boolean,
-  togglePassthrough?: () => void
+  togglePassthrough?: () => void,
+  handleLoadPlugin?: (plugin: DiscoveredPlugin) => void,
 ): MenuItemConfig[] {
   // 构建动态动画菜单
   const animationSubmenu: MenuItemConfig[] = animations.map((anim) => ({
@@ -158,7 +172,14 @@ export function getMenuConfig(
       text:"插件",
       submenu:
         plugins.length > 0
-          ? plugins
+          ? plugins.map((plugin) => ({
+              id: `plugin-${plugin.manifest.id}`,
+              text: plugin.manifest.name,
+
+              action: () => {
+                handleLoadPlugin(plugin)
+              },
+            }))
           : [
               {
                 id: "no-plugin",

@@ -20,7 +20,6 @@ interface SpineCanvasProps {
     /** 动画加载完成回调，返回可用动画列表和切换方法 */
   onAnimationsLoaded?: (animations: string[], playAnimation: (name: string, loop: boolean) => void) => void;
   /** 动画大小加载完成回调 */
-  onSizeLoaded?: (width: number, height: number) => void;
 }
 
 export const SpineCanvas: React.FC<SpineCanvasProps> = ({
@@ -30,7 +29,6 @@ export const SpineCanvas: React.FC<SpineCanvasProps> = ({
   width: propWidth,
   height: propHeight,
   onAnimationsLoaded,
-  onSizeLoaded,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
@@ -217,14 +215,6 @@ export const SpineCanvas: React.FC<SpineCanvasProps> = ({
           // 记录基础位置和画布高度，供 sit/sleep 动画偏移使用
           canvasHeightRef.current = height;
           baseSpineYRef.current = spine.y;
-
-          // 通知外部动画的实际大小（缩放后）
-          if (onSizeLoaded) {
-            onSizeLoaded(
-              Math.ceil(scaledBounds.width),
-              Math.ceil(scaledBounds.height)
-            );
-          }
 
         } else {
           // 默认居中

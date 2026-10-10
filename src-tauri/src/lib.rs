@@ -7,6 +7,7 @@ use tauri::{
 mod plugin;
 
 use plugin::discovery::discover_plugins;
+use plugin::discovery::read_plugin_file;
 
 
 static IS_PASSTHROUGH: AtomicBool = AtomicBool::new(false);
@@ -24,12 +25,13 @@ fn get_passthrough() -> bool {
     IS_PASSTHROUGH.load(Ordering::Relaxed)
 }
 
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![set_passthrough, get_passthrough, discover_plugins])
+        .invoke_handler(tauri::generate_handler![set_passthrough, get_passthrough, discover_plugins, read_plugin_file])
         .setup(|app| {
             // 创建托盘菜单
             let toggle_show = MenuItem::with_id(app, "toggle-show", "显示/隐藏桌宠", true, None::<&str>)?;

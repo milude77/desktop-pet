@@ -8,6 +8,8 @@ import { useNativeMenu } from "./hooks/useNativeMenu";
 import { useSpineAnimation } from "./hooks/useSpineAnimation";
 import { SpineCanvas } from "./components/SpineCanvas";
 import { getMenuConfig } from "./components/MenuConfig";
+import { Bubble } from "./components/Bubble"
+import { loadPlugin } from "./toolVoid/loadPlugins"
 import "./App.css";
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
   // 鼠标穿透状态
   const [isPassthrough, setIsPassthrough] = useState(false);
   const [plugins, setPlugins] = useState([])
+  const [bubbleText, setBubbleText] = useState("")
+  const [bubbleVisible, setBubbleVisible] = useState(false)
 
   // 监听 Rust 托盘的穿透状态变化
   useEffect(() => {
@@ -46,6 +50,7 @@ function App() {
   useEffect(() => {
     async function loadPlugins() {
       const plugins = await invoke("discover_plugins")
+      setPlugins(plugins)
 
       console.log("插件：", plugins)
     }
@@ -127,10 +132,11 @@ function App() {
   // 使用原生菜单
   const { showContextMenu } = useNativeMenu();
 
-  // 动画大小加载完成回调
-  const handleSizeLoaded = useCallback((w: number, h: number) => {
-    console.log("动画大小:", w, h);
-  }, []);
+  const handleLoadPlugin = (plugin) => {
+    loadPlugin(plugin, {
+      bubble: bubbleAPI,
+    })
+  }
 
   // 右键菜单
   const handleContextMenu = useCallback(
@@ -138,12 +144,23 @@ function App() {
       e.preventDefault();
 
       // 从 MenuConfig 获取菜单配置
-      const menuItems = getMenuConfig(animations, plugins, playAnimation, isPassthrough, togglePassthrough);
+      const menuItems = getMenuConfig(animations, plugins, playAnimation, isPassthrough, togglePassthrough, handleLoadPlugin);
 
       await showContextMenu(menuItems);
     },
     [showContextMenu, animations, playAnimation, isPassthrough, togglePassthrough]
   );
+
+  const bubbleAPI = {
+    show(text: string) {
+      setBubbleText(text)
+      setBubbleVisible(true)
+    },
+
+    hide() {
+      setBubbleVisible(false)
+    },
+}
 
   return (
     <main
@@ -151,11 +168,15 @@ function App() {
       onMouseDown={onMouseDown}
       onContextMenu={handleContextMenu}
     >
+      <Bubble
+        text={bubbleText}
+        visible={bubbleVisible}
+        onHide={() => setBubbleVisible(false)}
+      />
       {/* Spine 动画显示区域 - 自适应窗口大小 */}
       <SpineCanvas
         assetPath="/assets/changmen/changmen"
         loop={true}
-        onSizeLoaded={handleSizeLoaded}
       />
     </main>
   );

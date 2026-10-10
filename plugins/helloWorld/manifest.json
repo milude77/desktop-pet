@@ -1,0 +1,8 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "author": "milude77",
+  "description": "一个输出 Hello World 的示例插件",
+  "main": "plugin.js"
+}
