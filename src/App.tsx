@@ -13,9 +13,11 @@ import "./App.css";
 function App() {
   // 使用全局动画状态
   const { animations, playAnimation, setDragging } = useSpineAnimation();
+  
 
   // 鼠标穿透状态
   const [isPassthrough, setIsPassthrough] = useState(false);
+  const [plugins, setPlugins] = useState([])
 
   // 监听 Rust 托盘的穿透状态变化
   useEffect(() => {
@@ -40,6 +42,16 @@ function App() {
       console.error("设置鼠标穿透失败:", e);
     }
   }, [isPassthrough]);
+
+  useEffect(() => {
+    async function loadPlugins() {
+      const plugins = await invoke("discover_plugins")
+
+      console.log("插件：", plugins)
+    }
+
+    loadPlugins()
+  }, [])
 
   // 窗口拖拽相关状态
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -126,7 +138,7 @@ function App() {
       e.preventDefault();
 
       // 从 MenuConfig 获取菜单配置
-      const menuItems = getMenuConfig(animations, playAnimation, isPassthrough, togglePassthrough);
+      const menuItems = getMenuConfig(animations, plugins, playAnimation, isPassthrough, togglePassthrough);
 
       await showContextMenu(menuItems);
     },

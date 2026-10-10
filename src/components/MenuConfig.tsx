@@ -23,6 +23,7 @@ interface MenuItemConfig {
  */
 export function getMenuConfig(
   animations: string[],
+  plugins:string[],
   playAnimation?: (name: string, loop: boolean) => void,
   isPassthrough?: boolean,
   togglePassthrough?: () => void
@@ -153,6 +154,20 @@ export function getMenuConfig(
       ],
     },
     { id: "separator2", separator: true },
+    { id: "plugins",
+      text:"插件",
+      submenu:
+        plugins.length > 0
+          ? plugins
+          : [
+              {
+                id: "no-plugin",
+                text: "未检测到插件",
+                enabled: false,
+              },
+            ],
+    },
+    { id: "separator3", separator: true },
     {
       id: "quit",
       text: "退出",

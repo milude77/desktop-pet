@@ -4,6 +4,10 @@ use tauri::{
     tray::TrayIconBuilder,
     Emitter, Manager,
 };
+mod plugin;
+
+use plugin::discovery::discover_plugins;
+
 
 static IS_PASSTHROUGH: AtomicBool = AtomicBool::new(false);
 
@@ -25,7 +29,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![set_passthrough, get_passthrough])
+        .invoke_handler(tauri::generate_handler![set_passthrough, get_passthrough, discover_plugins])
         .setup(|app| {
             // 创建托盘菜单
             let toggle_show = MenuItem::with_id(app, "toggle-show", "显示/隐藏桌宠", true, None::<&str>)?;
